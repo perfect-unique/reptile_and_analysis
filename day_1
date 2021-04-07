@@ -1,0 +1,25 @@
+import requests
+from bs4 import BeautifulSoup
+url = "https://club.autohome.com.cn/bbs/thread/a238f513a183dfed/92484581-1.html#pvareaid=102410"
+response = requests.get(url=url,
+                        headers={
+                            "user-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363"
+                        }
+                        )
+# print(response.text)
+bs = BeautifulSoup(response.text, "html.parser")
+# bs.find(“”,attrs={"class": })找一个
+# bs.find_all()找一堆
+divs = bs.find_all("div", attrs={"class": "tz-picture"})
+n = 1
+for div in divs:
+    imgs = div.find_all("img")
+    for img in imgs:
+        src = img.get("data-src")
+        # print(src)
+        src = src.replace("820_", "")
+        src = "https:"+src
+        with open(f"{n}.jpg", mode="wb") as f:
+            f.write(requests.get(src).content)
+        n += 1
+        print("下载好了一个")
