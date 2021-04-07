@@ -1,0 +1,60 @@
+import json
+import time,re
+import requests
+import openpyxl
+from pyquery import PyQuery as pq
+from bs4 import BeautifulSoup
+
+def getPage(url):
+    response = requests.get(url=url,
+                            headers={
+                                "user-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363"
+                            }
+                            )
+    return response.text
+
+def parsePage(html):
+    pat = '<em class="">([0-9]+)</em>.*? <span class="title">(.*?)</span>.*? <p class="">(.*?)<br>.*?</p>.*?<span class="rating_num" property="v:average">([0-9].[0-9])</span>.*? <span>([0-9]+)人评价</span>'
+    items = re.findall(pat, html, re.S)
+    for item in items:
+        yield {
+            'index':item[0],
+            'title':item[1],
+            'actor':item[2].strip()[3:],
+            'score':item[3],
+            'comment_people':item[4],
+
+        }
+# 信息的存储
+def writeFile(content):
+    data = openpyxl.load_workbook('douban.xlsx')
+    table = data['top250']
+    table.append(list(content.values()))
+    data.save('douban.xlsx')
+    # with open("./result1.txt", "a", encoding='utf-8')as f:
+    #     f.write(json.dumps(content, ensure_ascii=False)+"\n")
+
+
+# 函数的调度
+def main(offset):
+    url = "https://movie.douban.com/top250?start=" + str(offset)
+    html = getPage(url)
+    print(html)
+    if html:
+        for item in parsePage(html):
+            writeFile(item)
+    # print('done!')
+
+
+# 程序主入口
+if __name__ == '__main__':
+    wb = openpyxl.Workbook()  # 创建一个工作簿
+    ws = wb.active
+    ws.title = "top250"
+    ws.append(['排名', '片名', '主演', '评分', '点评人数'])
+    wb.save(filename="douban.xlsx")
+    # main(0)
+    for i in range(10):
+        print("正在爬取第", i + 1, "页信息")
+        main(offset=i * 25)
+        time.sleep(2)
