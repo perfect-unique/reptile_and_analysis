@@ -1,0 +1,26 @@
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+
+url = "https://www.anjuke.com/fangjia/guangxi2021/"
+response = requests.get(url=url,
+                        headers={
+                            "user-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+                        }
+                        )
+response.encoding = 'GBK'
+response.encoding = 'utf-8'
+bs = BeautifulSoup(response.text, "html.parser")
+
+divs = bs.find_all("div", attrs={"class": "fjlist-box boxstyle1"})
+# print(divs)
+n = 1
+for div in divs:
+    A = div.find_all("a")
+    for a in A:
+        data = a.text
+        print(data)
+
+        # with open("../练习/house_price.csv", mode="w", encoding="utf-8") as f:
+        #     f.write(data)
+        #     n += 1
