@@ -1,0 +1,77 @@
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.wait import WebDriverWait
+from pyquery import PyQuery as pq
+from urllib.parse import quote
+import openpyxl
+
+keyword = 'ipad'
+MAX_PAGE = 10
+
+options = webdriver.ChromeOptions()
+
+options.binary_location = r"D:\Google\Chrome\Application/chrome.exe"
+
+driver = webdriver.Chrome(options=options)
+
+wait = WebDriverWait(driver, 10)
+
+def index_page(page):
+    print('正在爬取第', page, '页')
+    try:
+        url = "https://search.jd.com/Search?keyword=%s&page=%d" % (quote(keyword), (page-1)*44)
+        driver.get(url)
+        if page > 1:
+            input = wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, '#q')))
+            submit = wait.until(ec.element_to_be_clickable((By.CSS_SELECTOR, '#mainsrp-pager div.form > span.btn.J_Submit')))
+            input.clear()
+            input.send_keys(page)
+            submit.click()
+
+        wait.until(ec.text_to_be_present_in_element((By.CSS_SELECTOR, '#mainsrp-pager li.item.active > span'), str(page)))
+        wait.until(ec.presence_of_element_located((By.CSS_SELECTOR, '.m-itemlist .items .item')))
+        # driver.find_element_by_xpath('//*[@id="fm-login-id"]').send_keys("15578704681")
+        #
+        # driver.find_element_by_xpath('//*[@id="fm-login-password"]').send_keys("bao333666")
+        # driver.find_element_by_xpath('//*[@id="login-form"]/div[4]/button').click()
+        get_products()
+    except TimeoutException:
+        index_page(page)
+
+def get_products():
+    html = driver.page_source
+    doc = pq(html)
+    items = doc('#mainsrp-itemlist .items .item').items()
+    for item in items:
+        product = {
+            'image':item.find('.pic .img').attr('data-src'),
+            'price':item.find('.price').text(),
+            'deal':item.find('.deal-cnt').text(),
+            'title':item.find('.title').text(),
+            'shop':item.find('.shop').text(),
+            'location':item.find('.location').text()
+        }
+        print(product)
+        save_data(product)
+
+def save_data(result):
+    data = openpyxl.load_workbook('taobao.xlsx')
+    table = data['商品信息']
+    table.append(list(result.values()))
+    data.save('taobao.xlsx')
+
+def main():
+    for i in range(1, MAX_PAGE + 1):
+        print(i)
+        index_page(i)
+    driver.close()
+
+if __name__ == '__main__':
+    wb = openpyxl.Workbook()  # 创建一个工作簿
+    ws = wb.active
+    ws.title = "商品信息"
+    ws.append(['图片', '价格', '处理', '标题', '商店', 'location'])
+    wb.save(filename="taobao.xlsx")
+    main()
