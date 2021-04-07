@@ -24,3 +24,66 @@ for div in divs:
         # with open("../练习/house_price.csv", mode="w", encoding="utf-8") as f:
         #     f.write(data)
         #     n += 1
+#可视化分析
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
+# data = pd.read_csv("./house_price.csv", encoding="utf-8")
+data = pd.read_excel("D:/worksp/house_price.xlsx")
+
+# f, ax1 = plt.subplots(1, 1, figsize=(10, 5))
+# sns.barplot(x=data['地区'], y=data['房价'], data=data, ax=ax1)
+# ax1.set_title('2021年广西各市房价对比', fontsize=15)
+# ax1.set_xlabel('地区')
+# ax1.set_ylabel('房价(元/每平方米)')
+# # plt.xticks(rotation=90)
+# plt.tight_layout()
+# plt.show()
+#
+# f, ax2 = plt.subplots(1, 1, figsize=(10, 5))
+# sns.barplot(x='地区', y='上升点', data=data, ax=ax2)
+# ax2.set_title('房价上升点', fontsize=15)
+# ax2.set_xlabel('地区')
+# ax2.set_ylabel('上升点')
+# # plt.xticks(rotation=90)
+# plt.tight_layout()
+#
+# f, ax3 = plt.subplots(1, 1, figsize=(10, 5))
+# sns.barplot(x='地区', y='下降点', data=data, ax=ax3)
+# ax3.set_title('房价下升点', fontsize=15)
+# ax3.set_xlabel('地区')
+# ax3.set_ylabel('下降点')
+# # plt.xticks(rotation=90)
+# plt.tight_layout()
+# plt.show()
+#
+# print(data)
+f, [ax1, ax2, ax3] = plt.subplots(3, 1, figsize=(10, 6))
+
+
+sns.barplot(x=data['地区'], y=data['房价'], data=data, ax=ax1)
+ax1.set_title('2021年广西各市房价对比', fontsize=15)
+ax1.set_xlabel('地区')
+ax1.set_ylabel('房价(元/每平方米)')
+# plt.xticks(rotation=90)
+plt.tight_layout()
+
+sns.barplot(x='地区', y='上升点', data=data, ax=ax2)
+ax2.set_title('房价上升点', fontsize=15)
+ax2.set_xlabel('地区')
+ax2.set_ylabel('上升点')
+# plt.xticks(rotation=90)
+plt.tight_layout()
+
+
+sns.barplot(x='地区', y='下降点', data=data, ax=ax3)
+ax3.set_title('房价下降点', fontsize=15)
+ax3.set_xlabel('地区')
+ax3.set_ylabel('下降点')
+# plt.xticks(rotation=90)
+plt.tight_layout()
+plt.show()
