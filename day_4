@@ -1,0 +1,134 @@
+import requests
+import re
+import json
+import time
+import openpyxl
+#网页的爬取
+def getPage(url):
+    response = requests.get(url=url,
+                            headers={
+                                "user-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363"
+                            }
+                            )
+    return response.text
+#网页解析
+def parsePage(html):
+    pat = '<i class="board-index board-index-[0-9]+">([0-9]+)</i>.*?<img data-src="(.*?)" alt="(.*?)" class="board-img" />.*?<p class="star">(.*?)</p>.*?<p class="releasetime">(.*?)</p>.*?</div>.*?<p class="score"><i class="integer">([0-9.]+)</i><i class="fraction">([0-9]+)</i></p>'
+    items = re.findall(pat, html, re.S)
+    for item in items:
+        yield{
+           'index': item[0],
+           'image': item[1],
+           'tittle': item[2],
+           'actor': item[3].strip()[3:],
+           'time': item[4].strip()[5:],
+           'score': item[5] + item[6],
+        }
+
+
+    '''mlist = []
+    for item in items:
+        a = {
+            'index': item[0],
+            'image': item[1],
+            'tittle': item[2],
+            'actor': item[3].strip()[3:],
+            'time': item[4].strip()[5:],
+            'score': item[5]+item[6],
+        }
+        mlist.append(a)
+    return mlist
+    '''
+#信息的存储
+def writeFile(content):
+    data = openpyxl.load_workbook('piaofang.xlsx')#下载一个工作簿
+    table = data['top100']#工作表名称
+    table.append(list(content.values()))#把内容添加到工作表中
+    data.save('piaofang.xlsx')#保存文件
+    # with open("./result.txt", "a", encoding='utf-8')as f:
+    #     f.write(json.dumps(content, ensure_ascii=False)+"\n")
+
+#函数的调度
+def main(offset):
+    url = "https://maoyan.com/board/4?offset="+str(offset)
+    html = getPage(url)
+    print(html)
+    if html:
+        for item in parsePage(html):
+            writeFile(item)
+
+#程序主入口
+if __name__ == '__main__':
+    wb = openpyxl.Workbook()#创建一个工作簿
+    ws = wb.active
+    ws.title = "top100"
+    ws.append(['排名', '图片', '标题', '主演', '评分'])
+    wb.save(filename="piaofang.xlsx")
+    # main(0)
+    for i in range(10):
+        print("正在爬取第", i+1, "页信息")
+        main(offset=i*10)
+        time.sleep(2)
+
+
+# import json
+# import time
+# import requests
+# from bs4 import BeautifulSoup
+#
+# url = "https://movie.douban.com/top250?start="
+#
+# def getPage(url):
+#     response = requests.get(url=url,
+#                             headers={
+#                                 "user-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363"
+#                             }
+#                             )
+#     return response.text
+#
+# def parsePage(content):
+#     bs = BeautifulSoup(getPage(url), "html.parser")
+#     items = bs("div.item")
+#     for item in items:
+#         yield {
+#             'index': item.find("div.pic em").text,
+#             'image': item.find("img[width='100']").attr('src'),
+#             'title': item.find("span.title").text,
+#             'info': item.find("div.bd p").text().strip(),
+#             'score': item.find("span.rating_num").text(),
+#
+#         }
+# # 信息的存储
+# def writeFile(content):
+#     # data = openpyxl.load_workbook('douban.xlsx')
+#     # table = data['top250']
+#     # table.append(list(content.values()))
+#     # data.save('douban.xlsx')
+#     with open("./result1.txt", "a", encoding='utf-8')as f:
+#         f.write(json.dumps(content, ensure_ascii=False)+"\n")
+#
+#
+# # 函数的调度
+# def main(offset):
+#     url = "https://movie.douban.com/top250?start=" + str(offset)
+#     html = getPage(url)
+#     # print(html)
+#     if html:
+#         for item in parsePage(html):
+#             writeFile(item)
+#             print('done!')
+#     # print('done!')
+#
+#
+# # 程序主入口
+# if __name__ == '__main__':
+#     # wb = openpyxl.Workbook()  # 创建一个工作簿
+#     # ws = wb.active
+#     # ws.title = "top250"
+#     # ws.append(['排名', '图片', '标题', '主演', '评分'])
+#     # wb.save(filename="douban.xlsx")
+#     # main(0)
+#     for i in range(10):
+#         print("正在爬取第", i + 1, "页信息")
+#         main(offset=i * 25)
+#         time.sleep(2)
