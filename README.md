@@ -12,4 +12,4 @@
 
 5.豆瓣top250电影爬取（request,re(正则)）
 
-6.淘宝商品信息爬取（selenium）
+6.淘宝商品信息爬取（selenium（动态网页））
